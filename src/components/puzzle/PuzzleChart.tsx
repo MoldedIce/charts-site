@@ -8,6 +8,7 @@ import {
   YAxis,
 } from "recharts";
 import type { PuzzleDefinition, Point } from "../../data/puzzle-types";
+import { useIsMobile } from "../../hooks/useIsMobile";
 import { CustomTooltip } from "./CustomTooltip";
 import { EndpointLabel } from "./EndpointLabel";
 import {
@@ -49,6 +50,11 @@ export function PuzzleChart({
   const selectedAnswer = getSelectedAnswer(puzzle, selectedAnswerId);
   const candidateLines = getCandidateLines(puzzle);
 
+  const isMobile = useIsMobile();
+  const chartHeight = isMobile ? 280 : puzzleTheme.sizes.chartHeight;
+  const chartRightMargin = isMobile ? 48 : 80;
+  const tickInterval = isMobile && stepTicks.length > 7 ? 1 : 0;
+
   if (!correctAnswer) {
     return null;
   }
@@ -62,7 +68,7 @@ export function PuzzleChart({
     <div
       style={{
         width: "100%",
-        height: puzzleTheme.sizes.chartHeight,
+        height: chartHeight,
         background: puzzleTheme.colors.cardBackground,
         border: `1px solid ${puzzleTheme.colors.borderLight}`,
         borderRadius: puzzleTheme.radii.panel,
@@ -74,7 +80,7 @@ export function PuzzleChart({
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={baseData}
-          margin={{ top: 20, right: 80, left: 10, bottom: 10 }}
+          margin={{ top: 20, right: chartRightMargin, left: 10, bottom: 10 }}
         >
           <CartesianGrid stroke={puzzleTheme.colors.grid} vertical={false} />
 
@@ -85,6 +91,7 @@ export function PuzzleChart({
             type="number"
             domain={[1, targetStep]}
             ticks={stepTicks}
+            interval={tickInterval}
           />
 
           <YAxis tickLine={false} axisLine={false} width={40} />

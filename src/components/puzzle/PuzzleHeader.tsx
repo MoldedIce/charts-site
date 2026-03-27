@@ -1,3 +1,4 @@
+import { useIsMobile } from "../../hooks/useIsMobile";
 import { puzzleTheme } from "./puzzle-theme";
 
 type PuzzleHeaderProps = {
@@ -11,6 +12,8 @@ export function PuzzleHeader({
   subtitle,
   onReset,
 }: PuzzleHeaderProps) {
+  const isMobile = useIsMobile();
+
   return (
     <div
       style={{
@@ -40,7 +43,7 @@ export function PuzzleHeader({
         <h1
           style={{
             margin: 0,
-            fontSize: 34,
+            fontSize: isMobile ? 22 : 34,
             lineHeight: 1.2,
             color: puzzleTheme.colors.textPrimary,
           }}

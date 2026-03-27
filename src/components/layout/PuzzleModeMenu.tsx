@@ -1,3 +1,4 @@
+import { useIsMobile } from "../../hooks/useIsMobile";
 import { puzzleTheme } from "../puzzle/puzzle-theme";
 
 export type PuzzleMode = "next-point" | "scenario";
@@ -11,6 +12,9 @@ export function PuzzleModeMenu({
   activeMode,
   onChange,
 }: PuzzleModeMenuProps) {
+  const isMobile = useIsMobile();
+  const headerHeight = isMobile ? 56 : puzzleTheme.sizes.headerHeight;
+
   const modes: Array<{ id: PuzzleMode; label: string }> = [
     { id: "next-point", label: "Next Point" },
     { id: "scenario", label: "Scenarios" },
@@ -20,7 +24,7 @@ export function PuzzleModeMenu({
     <div
       style={{
         position: "sticky",
-        top: puzzleTheme.sizes.headerHeight,
+        top: headerHeight,
         zIndex: 20,
         background: puzzleTheme.colors.background,
         padding: "14px 0 18px",

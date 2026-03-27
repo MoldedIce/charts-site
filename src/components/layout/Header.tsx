@@ -1,3 +1,4 @@
+import { useIsMobile } from "../../hooks/useIsMobile";
 import { puzzleTheme } from "../puzzle/puzzle-theme";
 
 type HeaderProps = {
@@ -5,6 +6,8 @@ type HeaderProps = {
 };
 
 export function Header({ isScrolled }: HeaderProps) {
+  const isMobile = useIsMobile();
+
   return (
     <div
       style={{
@@ -12,9 +15,9 @@ export function Header({ isScrolled }: HeaderProps) {
         top: 0,
         zIndex: 30,
         width: "100%",
-        height: puzzleTheme.sizes.headerHeight,
+        height: isMobile ? 56 : puzzleTheme.sizes.headerHeight,
         background: puzzleTheme.brand.background,
-        padding: "0 20px",
+        padding: "0 16px",
         boxSizing: "border-box",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
         display: "flex",
@@ -25,7 +28,7 @@ export function Header({ isScrolled }: HeaderProps) {
     >
       <div
         style={{
-          fontSize: 24,
+          fontSize: isMobile ? 18 : 24,
           fontWeight: 600,
           color: puzzleTheme.brand.accent,
           letterSpacing: 0.3,

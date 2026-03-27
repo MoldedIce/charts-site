@@ -27,23 +27,20 @@ export function AnswerButtons({
       width: "100%",
       padding: "14px 16px",
       borderRadius: puzzleTheme.radii.button,
-      border: `1px solid ${puzzleTheme.colors.border}`,
-      background: puzzleTheme.colors.cardBackground,
+      border: "none",
+      background: "rgba(0,0,0,0.04)",
       color: puzzleTheme.colors.textPrimary,
       cursor: hasAnswered ? "default" : "pointer",
       fontSize: 16,
       textAlign: "left",
-      transition: "all 0.15s ease",
-      boxShadow:
-        isHovered && !hasAnswered ? "0 0 0 2px rgba(17,24,39,0.04)" : "none",
+      transition: "background 0.15s ease",
     };
 
     if (!hasAnswered) {
       if (isHovered) {
         return {
           ...baseStyle,
-          border: `1px solid ${puzzleTheme.colors.labelNeutral}`,
-          background: "#fcfcfd",
+          background: "rgba(0,0,0,0.07)",
         };
       }
 
@@ -53,8 +50,7 @@ export function AnswerButtons({
     if (answerId === correctAnswerId) {
       return {
         ...baseStyle,
-        border: `1px solid ${puzzleTheme.colors.correct}`,
-        background: "#f0fdf4",
+        background: "rgba(22,163,74,0.08)",
         color: "#166534",
         fontWeight: 600,
       };
@@ -63,8 +59,7 @@ export function AnswerButtons({
     if (answerId === selectedAnswerId && answerId !== correctAnswerId) {
       return {
         ...baseStyle,
-        border: `1px solid ${puzzleTheme.colors.incorrect}`,
-        background: "#fef2f2",
+        background: "rgba(220,38,38,0.08)",
         color: "#991b1b",
         fontWeight: 600,
       };
@@ -72,7 +67,7 @@ export function AnswerButtons({
 
     return {
       ...baseStyle,
-      opacity: 0.7,
+      opacity: 0.5,
     };
   }
 

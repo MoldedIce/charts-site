@@ -1,6 +1,6 @@
 export const puzzleTheme = {
   colors: {
-    background: "#f5f7fb",
+    background: "#eef2f7",
     cardBackground: "#ffffff",
 
     textPrimary: "#101828",
@@ -24,7 +24,7 @@ export const puzzleTheme = {
 
   brand: {
     background: "#222222",
-    accent: "#A8FFE6",
+    accent: "#8DD6BE",
   },
 
   radii: {

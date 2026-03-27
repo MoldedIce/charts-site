@@ -7,12 +7,15 @@ import {
 import { PuzzlePicker } from "./components/layout/PuzzlePicker";
 import { PuzzleCard } from "./components/puzzle/PuzzleCard";
 import { puzzleTheme } from "./components/puzzle/puzzle-theme";
+import { useIsMobile } from "./hooks/useIsMobile";
 import { nextPointPuzzles } from "./data/puzzles";
 
 export default function App() {
   const [activeMode, setActiveMode] = useState<PuzzleMode>("next-point");
   const [nextPointIndex, setNextPointIndex] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const isMobile = useIsMobile();
+  const headerHeight = isMobile ? 56 : puzzleTheme.sizes.headerHeight;
 
   useEffect(() => {
     function handleScroll() {
@@ -46,15 +49,36 @@ export default function App() {
           fontFamily: "Inter, system-ui, -apple-system, sans-serif",
         }}
       >
-        <PuzzleModeMenu activeMode={activeMode} onChange={setActiveMode} />
-
-        {activeMode === "next-point" && (
-          <PuzzlePicker
-            count={nextPointPuzzles.length}
-            activeIndex={nextPointIndex}
-            onChange={setNextPointIndex}
-          />
-        )}
+        <div
+          style={{
+            position: "sticky",
+            top: headerHeight,
+            zIndex: 20,
+            background: puzzleTheme.colors.background,
+            padding: "14px 0 16px",
+            marginBottom: 20,
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: puzzleTheme.sizes.contentMaxWidth,
+              margin: "0 auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+            }}
+          >
+            <PuzzleModeMenu activeMode={activeMode} onChange={setActiveMode} />
+            {activeMode === "next-point" && (
+              <PuzzlePicker
+                count={nextPointPuzzles.length}
+                activeIndex={nextPointIndex}
+                onChange={setNextPointIndex}
+              />
+            )}
+          </div>
+        </div>
 
         {activeMode === "next-point" ? (
           <PuzzleCard key={nextPointPuzzle.id} puzzle={nextPointPuzzle} />

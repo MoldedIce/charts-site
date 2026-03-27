@@ -16,7 +16,7 @@ export function PuzzlePicker({
       style={{
         width: "100%",
         maxWidth: puzzleTheme.sizes.contentMaxWidth,
-        margin: "0 auto 20px auto",
+        margin: "0 auto",
       }}
     >
       <div
@@ -35,20 +35,19 @@ export function PuzzlePicker({
               key={index}
               onClick={() => onChange(index)}
               style={{
-                padding: "8px 12px",
-                borderRadius: 10,
-                border: `1px solid ${
-                  isActive
-                    ? puzzleTheme.colors.textPrimary
-                    : puzzleTheme.colors.border
-                }`,
-                background: isActive
+                padding: "4px 0",
+                border: "none",
+                borderBottom: isActive
+                  ? `2px solid ${puzzleTheme.colors.textPrimary}`
+                  : "2px solid transparent",
+                background: "transparent",
+                color: isActive
                   ? puzzleTheme.colors.textPrimary
-                  : puzzleTheme.colors.cardBackground,
-                color: isActive ? "#ffffff" : puzzleTheme.colors.textPrimary,
+                  : puzzleTheme.colors.textSecondary,
                 fontSize: 14,
-                fontWeight: 600,
+                fontWeight: isActive ? 600 : 400,
                 cursor: "pointer",
+                transition: "all 0.15s ease",
               }}
             >
               Puzzle {index + 1}

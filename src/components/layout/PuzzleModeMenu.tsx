@@ -1,4 +1,3 @@
-import { useIsMobile } from "../../hooks/useIsMobile";
 import { puzzleTheme } from "../puzzle/puzzle-theme";
 
 export type PuzzleMode = "next-point" | "scenario";
@@ -12,9 +11,6 @@ export function PuzzleModeMenu({
   activeMode,
   onChange,
 }: PuzzleModeMenuProps) {
-  const isMobile = useIsMobile();
-  const headerHeight = isMobile ? 56 : puzzleTheme.sizes.headerHeight;
-
   const modes: Array<{ id: PuzzleMode; label: string }> = [
     { id: "next-point", label: "Next Point" },
     { id: "scenario", label: "Scenarios" },
@@ -23,61 +19,38 @@ export function PuzzleModeMenu({
   return (
     <div
       style={{
-        position: "sticky",
-        top: headerHeight,
-        zIndex: 20,
-        background: puzzleTheme.colors.background,
-        padding: "14px 0 18px",
-        marginBottom: 2,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 24,
       }}
     >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: puzzleTheme.sizes.contentMaxWidth,
-          margin: "0 auto",
-        }}
-      >
-        
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: 6,
-            background: puzzleTheme.colors.cardBackground,
-            border: `1px solid ${puzzleTheme.colors.borderLight}`,
-            borderRadius: 16,
-            boxShadow: "0 2px 10px rgba(16,24,40,0.04)",
-          }}
-        >
-          {modes.map((mode) => {
-            const isActive = activeMode === mode.id;
+      {modes.map((mode) => {
+        const isActive = activeMode === mode.id;
 
-            return (
-              <button
-                key={mode.id}
-                onClick={() => onChange(mode.id)}
-                style={{
-                  padding: "10px 14px",
-                  border: "none",
-                  borderRadius: 12,
-                  background: isActive
-                    ? puzzleTheme.colors.textPrimary
-                    : "transparent",
-                  color: isActive ? "#ffffff" : puzzleTheme.colors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {mode.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+        return (
+          <button
+            key={mode.id}
+            onClick={() => onChange(mode.id)}
+            style={{
+              padding: "4px 0",
+              border: "none",
+              borderBottom: isActive
+                ? `2px solid ${puzzleTheme.colors.textPrimary}`
+                : "2px solid transparent",
+              background: "transparent",
+              color: isActive
+                ? puzzleTheme.colors.textPrimary
+                : puzzleTheme.colors.textSecondary,
+              fontSize: 14,
+              fontWeight: isActive ? 600 : 400,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+          >
+            {mode.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

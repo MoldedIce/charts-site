@@ -69,10 +69,7 @@ export function PuzzleChart({
       style={{
         width: "100%",
         height: chartHeight,
-        background: puzzleTheme.colors.cardBackground,
-        border: `1px solid ${puzzleTheme.colors.borderLight}`,
-        borderRadius: puzzleTheme.radii.panel,
-        padding: 24,
+        padding: "24px 0",
         boxSizing: "border-box",
         marginBottom: 28,
       }}

@@ -18,13 +18,13 @@ export function ResultBanner({
   return (
     <div
       style={{
-        borderRadius: puzzleTheme.radii.banner,
-        padding: 16,
-        background: isCorrect ? "#f0fdf4" : "#fef2f2",
+        borderLeft: `3px solid ${isCorrect ? puzzleTheme.colors.correct : puzzleTheme.colors.incorrect}`,
+        paddingLeft: 14,
+        paddingTop: 4,
+        paddingBottom: 4,
         color: isCorrect ? "#166534" : "#991b1b",
-        border: isCorrect ? "1px solid #bbf7d0" : "1px solid #fecaca",
-        fontSize: 16,
-        lineHeight: 1.5,
+        fontSize: 15,
+        lineHeight: 1.6,
       }}
     >
       {text}

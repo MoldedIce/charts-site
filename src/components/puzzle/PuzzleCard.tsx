@@ -1,5 +1,4 @@
 import type { PuzzleDefinition } from "../../data/puzzle-types";
-import { useIsMobile } from "../../hooks/useIsMobile";
 import { usePuzzleState } from "../../hooks/usePuzzleState";
 import { AnswerButtons } from "./AnswerButtons";
 import { PuzzleChart } from "./PuzzleChart";
@@ -12,7 +11,6 @@ type PuzzleCardProps = {
 };
 
 export function PuzzleCard({ puzzle }: PuzzleCardProps) {
-  const isMobile = useIsMobile();
   const {
     selectedAnswerId,
     hoveredAnswerId,
@@ -40,11 +38,7 @@ export function PuzzleCard({ puzzle }: PuzzleCardProps) {
         width: "100%",
         maxWidth: puzzleTheme.sizes.contentMaxWidth,
         margin: "0 auto",
-        background: puzzleTheme.colors.cardBackground,
-        borderRadius: puzzleTheme.radii.card,
-        padding: isMobile ? 16 : 32,
         boxSizing: "border-box",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
       }}
     >
       <PuzzleHeader

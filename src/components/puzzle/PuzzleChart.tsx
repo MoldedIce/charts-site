@@ -116,12 +116,12 @@ export function PuzzleChart({
             stroke={puzzleTheme.colors.lineBase}
             strokeWidth={3}
             dot={{
-              r: 5,
+              r: isMobile ? 3 : 5,
               fill: puzzleTheme.colors.lineBase,
               stroke: puzzleTheme.colors.lineBase,
             }}
             activeDot={{
-              r: 7,
+              r: isMobile ? 4 : 7,
               fill: puzzleTheme.colors.lineBase,
               stroke: puzzleTheme.colors.lineBase,
             }}

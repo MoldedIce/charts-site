@@ -50,7 +50,7 @@ export function PuzzlePicker({
                 transition: "all 0.15s ease",
               }}
             >
-              Puzzle {index + 1}
+              {index + 1}
             </button>
           );
         })}

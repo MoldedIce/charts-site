@@ -41,7 +41,7 @@ export const puzzleTheme = {
   },
 
   labels: {
-    endpointFontSize: 13,
+    endpointFontSize: 12,
     endpointOffset: 10,
   },
 } as const;

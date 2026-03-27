@@ -3,13 +3,11 @@ import { puzzleTheme } from "./puzzle-theme";
 
 type PuzzleHeaderProps = {
   title: string;
-  subtitle?: string;
   onReset: () => void;
 };
 
 export function PuzzleHeader({
   title,
-  subtitle,
   onReset,
 }: PuzzleHeaderProps) {
   const isMobile = useIsMobile();
@@ -25,21 +23,6 @@ export function PuzzleHeader({
       }}
     >
       <div>
-        {subtitle && (
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              letterSpacing: 1,
-              textTransform: "uppercase",
-              color: puzzleTheme.colors.textSecondary,
-              marginBottom: 12,
-            }}
-          >
-            {subtitle}
-          </div>
-        )}
-
         <h1
           style={{
             margin: 0,

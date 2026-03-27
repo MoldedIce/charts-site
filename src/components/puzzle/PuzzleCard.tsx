@@ -43,7 +43,6 @@ export function PuzzleCard({ puzzle }: PuzzleCardProps) {
     >
       <PuzzleHeader
         title={puzzle.title}
-        subtitle={puzzle.subtitle}
         onReset={handleReset}
       />
 

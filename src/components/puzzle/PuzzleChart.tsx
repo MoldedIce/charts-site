@@ -89,9 +89,10 @@ export function PuzzleChart({
             domain={[1, targetStep]}
             ticks={stepTicks}
             interval={tickInterval}
+            tick={{ fontSize: 12 }}
           />
 
-          <YAxis tickLine={false} axisLine={false} width={40} />
+          <YAxis tickLine={false} axisLine={false} width={40} tick={{ fontSize: 12 }} />
 
           <Tooltip
             cursor={<ChartHoverCursor />}

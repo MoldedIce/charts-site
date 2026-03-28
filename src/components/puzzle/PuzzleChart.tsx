@@ -220,7 +220,8 @@ export function PuzzleChart({
                 dataKey="value"
                 data={[lastBasePoint, selectedAnswerPoint]}
                 stroke={puzzleTheme.colors.incorrect}
-                strokeWidth={3}
+                strokeWidth={2}
+                strokeDasharray="6 6"
                 dot={(props) => (
                   <ResultDot
                     {...props}

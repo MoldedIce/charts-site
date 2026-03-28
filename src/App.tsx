@@ -6,13 +6,15 @@ import {
 } from "./components/layout/PuzzleModeMenu";
 import { PuzzlePicker } from "./components/layout/PuzzlePicker";
 import { PuzzleCard } from "./components/puzzle/PuzzleCard";
+import { ScenarioCard } from "./components/puzzle/ScenarioCard";
 import { puzzleTheme } from "./components/puzzle/puzzle-theme";
 import { useIsMobile } from "./hooks/useIsMobile";
-import { nextPointPuzzles } from "./data/puzzles";
+import { nextPointPuzzles, scenarioPuzzles } from "./data/puzzles";
 
 export default function App() {
   const [activeMode, setActiveMode] = useState<PuzzleMode>("next-point");
   const [nextPointIndex, setNextPointIndex] = useState(0);
+  const [scenarioIndex, setScenarioIndex] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const isMobile = useIsMobile();
   const headerHeight = isMobile ? 56 : puzzleTheme.sizes.headerHeight;
@@ -31,6 +33,7 @@ export default function App() {
   }, []);
 
   const nextPointPuzzle = nextPointPuzzles[nextPointIndex];
+  const scenarioPuzzle = scenarioPuzzles[scenarioIndex];
 
   return (
     <div
@@ -77,62 +80,23 @@ export default function App() {
                 onChange={setNextPointIndex}
               />
             )}
+            {activeMode === "scenario" && (
+              <PuzzlePicker
+                count={scenarioPuzzles.length}
+                activeIndex={scenarioIndex}
+                onChange={setScenarioIndex}
+              />
+            )}
           </div>
         </div>
 
         {activeMode === "next-point" ? (
           <PuzzleCard key={nextPointPuzzle.id} puzzle={nextPointPuzzle} />
         ) : (
-          <div
-            style={{
-              width: "100%",
-              maxWidth: puzzleTheme.sizes.contentMaxWidth,
-              margin: "0 auto",
-              background: puzzleTheme.colors.cardBackground,
-              borderRadius: puzzleTheme.radii.card,
-              padding: 32,
-              boxSizing: "border-box",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                letterSpacing: 1,
-                textTransform: "uppercase",
-                color: puzzleTheme.colors.textSecondary,
-                marginBottom: 12,
-              }}
-            >
-              Coming Soon
-            </div>
-
-            <h1
-              style={{
-                margin: 0,
-                fontSize: 32,
-                lineHeight: 1.2,
-                color: puzzleTheme.colors.textPrimary,
-                marginBottom: 16,
-              }}
-            >
-              Scenario selection puzzles
-            </h1>
-
-            <p
-              style={{
-                margin: 0,
-                fontSize: 16,
-                lineHeight: 1.7,
-                color: puzzleTheme.colors.textSecondary,
-                maxWidth: 760,
-              }}
-            >
-              This mode will let users compare multiple full future curves and
-              choose the most plausible continuation.
-            </p>
-          </div>
+          <ScenarioCard
+            key={scenarioPuzzle.id}
+            puzzle={scenarioPuzzle}
+          />
         )}
       </main>
     </div>

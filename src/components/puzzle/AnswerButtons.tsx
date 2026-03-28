@@ -1,8 +1,7 @@
-import type { AnswerOption } from "../../data/puzzle-types";
 import { puzzleTheme } from "./puzzle-theme";
 
 type AnswerButtonsProps = {
-  answers: AnswerOption[];
+  answers: { id: string; label: string }[];
   selectedAnswerId: string | null;
   hoveredAnswerId: string | null;
   correctAnswerId: string;

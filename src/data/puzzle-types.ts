@@ -21,3 +21,21 @@ export type PuzzleDefinition = {
     incorrect: (chosenLabel: string, correctLabel: string) => string;
   };
 };
+
+export type ScenarioOption = {
+  id: string;
+  label: string;
+  data: Point[];
+};
+
+export type ScenarioPuzzleDefinition = {
+  id: string;
+  title: string;
+  baseData: Point[];
+  scenarios: ScenarioOption[];
+  correctScenarioId: string;
+  explanation: {
+    correct: string;
+    incorrect: (chosenLabel: string, correctLabel: string) => string;
+  };
+};

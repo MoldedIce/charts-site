@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import { AdminPage } from "./pages/AdminPage";
 import { Header } from "./components/layout/Header";
 import {
   PuzzleModeMenu,
@@ -35,7 +37,7 @@ export default function App() {
   const nextPointPuzzle = nextPointPuzzles[nextPointIndex];
   const scenarioPuzzle = scenarioPuzzles[scenarioIndex];
 
-  return (
+  const puzzleApp = (
     <div
       style={{
         minHeight: "100vh",
@@ -100,5 +102,12 @@ export default function App() {
         )}
       </main>
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route path="/" element={puzzleApp} />
+      <Route path="/backstage" element={<AdminPage />} />
+    </Routes>
   );
 }

@@ -1,20 +1,27 @@
 import { useState } from "react";
 import { IdeasTab } from "./admin/IdeasTab";
 
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
-const SESSION_KEY = "da_admin_auth";
+const SESSION_KEY = "da_admin_pw";
 
 export function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(
-    () => sessionStorage.getItem(SESSION_KEY) === "true"
+    () => !!sessionStorage.getItem(SESSION_KEY)
   );
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, "true");
+    setLoading(true);
+    const res = await fetch("/api/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    setLoading(false);
+    if (res.ok) {
+      sessionStorage.setItem(SESSION_KEY, password);
       setIsAuthenticated(true);
     } else {
       setError(true);
@@ -71,6 +78,7 @@ export function AdminPage() {
           )}
           <button
             type="submit"
+            disabled={loading}
             style={{
               padding: "10px 14px",
               borderRadius: 10,
@@ -79,11 +87,12 @@ export function AdminPage() {
               color: "#fff",
               fontSize: 15,
               fontWeight: 600,
-              cursor: "pointer",
+              cursor: loading ? "default" : "pointer",
               fontFamily: "inherit",
+              opacity: loading ? 0.6 : 1,
             }}
           >
-            Enter
+            {loading ? "Checking..." : "Enter"}
           </button>
         </form>
       </div>

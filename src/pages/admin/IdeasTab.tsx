@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabaseAdmin } from "../../lib/supabase";
 
 type Comment = {
   id: number;
@@ -43,6 +42,11 @@ const emptyForm = {
   priority: "Medium",
 };
 
+function authHeader(): Record<string, string> {
+  const pw = sessionStorage.getItem("da_admin_pw") ?? "";
+  return { "Authorization": `Bearer ${pw}`, "Content-Type": "application/json" };
+}
+
 export function IdeasTab() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,22 +62,10 @@ export function IdeasTab() {
 
   async function fetchIdeas() {
     setLoading(true);
-    const { data: ideasData } = await supabaseAdmin
-      .from("ideas")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    const { data: commentsData } = await supabaseAdmin
-      .from("comments")
-      .select("*")
-      .order("created_at", { ascending: true });
-
-    if (ideasData) {
-      const withComments = ideasData.map((idea) => ({
-        ...idea,
-        comments: commentsData?.filter((c) => c.idea_id === idea.id) ?? [],
-      }));
-      setIdeas(withComments);
+    const res = await fetch("/api/ideas", { headers: authHeader() });
+    if (res.ok) {
+      const data = await res.json();
+      setIdeas(data);
     }
     setLoading(false);
   }
@@ -82,32 +74,44 @@ export function IdeasTab() {
 
   async function handleAddIdea(e: React.FormEvent) {
     e.preventDefault();
-    await supabaseAdmin.from("ideas").insert([form]);
+    await fetch("/api/ideas", {
+      method: "POST",
+      headers: authHeader(),
+      body: JSON.stringify(form),
+    });
     setForm(emptyForm);
     setShowForm(false);
     fetchIdeas();
   }
 
   async function handleDeleteIdea(id: number) {
-    await supabaseAdmin.from("ideas").delete().eq("id", id);
+    await fetch(`/api/ideas/${id}`, { method: "DELETE", headers: authHeader() });
     setExpandedId(null);
     fetchIdeas();
   }
 
   async function handleAddComment(ideaId: number) {
     if (!newComment.trim()) return;
-    await supabaseAdmin.from("comments").insert([{ idea_id: ideaId, content: newComment.trim() }]);
+    await fetch("/api/comments", {
+      method: "POST",
+      headers: authHeader(),
+      body: JSON.stringify({ idea_id: ideaId, content: newComment.trim() }),
+    });
     setNewComment("");
     fetchIdeas();
   }
 
   async function handleDeleteComment(commentId: number) {
-    await supabaseAdmin.from("comments").delete().eq("id", commentId);
+    await fetch(`/api/comments/${commentId}`, { method: "DELETE", headers: authHeader() });
     fetchIdeas();
   }
 
   async function handleSaveEdit(id: number) {
-    await supabaseAdmin.from("ideas").update(editForm).eq("id", id);
+    await fetch(`/api/ideas/${id}`, {
+      method: "PUT",
+      headers: authHeader(),
+      body: JSON.stringify(editForm),
+    });
     setEditingId(null);
     fetchIdeas();
   }

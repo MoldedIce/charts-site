@@ -19,7 +19,7 @@ type Idea = {
   comments?: Comment[];
 };
 
-const CATEGORIES = ["Design", "Functionality", "Content", "Bug", "Other"];
+const CATEGORIES = ["Design", "Functionality", "Content", "Bug", "Concept", "Other"];
 const STATUSES = ["Idea", "In Progress", "Done"];
 const PRIORITIES = ["Low", "Medium", "High"];
 
@@ -52,6 +52,9 @@ export function IdeasTab() {
   const [newComment, setNewComment] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState(emptyForm);
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [filterPriority, setFilterPriority] = useState("All");
 
   async function fetchIdeas() {
     setLoading(true);
@@ -109,6 +112,13 @@ export function IdeasTab() {
     fetchIdeas();
   }
 
+  const filteredIdeas = ideas.filter((idea) => {
+    if (filterCategory !== "All" && idea.category !== filterCategory) return false;
+    if (filterStatus !== "All" && idea.status !== filterStatus) return false;
+    if (filterPriority !== "All" && idea.priority !== filterPriority) return false;
+    return true;
+  });
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
@@ -129,6 +139,21 @@ export function IdeasTab() {
         >
           {showForm ? "Cancel" : "+ New idea"}
         </button>
+      </div>
+
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={selectStyle}>
+          <option value="All">All categories</option>
+          {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+        </select>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={selectStyle}>
+          <option value="All">All statuses</option>
+          {STATUSES.map((s) => <option key={s}>{s}</option>)}
+        </select>
+        <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} style={selectStyle}>
+          <option value="All">All priorities</option>
+          {PRIORITIES.map((p) => <option key={p}>{p}</option>)}
+        </select>
       </div>
 
       {showForm && (
@@ -177,9 +202,11 @@ export function IdeasTab() {
         <div style={{ color: "#667085", fontSize: 14 }}>Loading...</div>
       ) : ideas.length === 0 ? (
         <div style={{ color: "#667085", fontSize: 14 }}>No ideas yet. Add your first one!</div>
+      ) : filteredIdeas.length === 0 ? (
+        <div style={{ color: "#667085", fontSize: 14 }}>No ideas match the selected filters.</div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {ideas.map((idea) => {
+          {filteredIdeas.map((idea) => {
             const isExpanded = expandedId === idea.id;
             const isEditing = editingId === idea.id;
 

@@ -8,8 +8,3 @@ body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, sans-serif;
 }
-
-.recharts-wrapper,
-.recharts-surface {
-  touch-action: pan-y !important;
-}

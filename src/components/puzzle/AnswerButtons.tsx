@@ -24,13 +24,13 @@ export function AnswerButtons({
 
     const baseStyle: React.CSSProperties = {
       width: "100%",
-      padding: "14px 16px",
+      padding: "10px 14px",
       borderRadius: puzzleTheme.radii.button,
       border: "none",
       background: "rgba(0,0,0,0.04)",
       color: puzzleTheme.colors.textPrimary,
       cursor: hasAnswered ? "default" : "pointer",
-      fontSize: 16,
+      fontSize: 14,
       textAlign: "left",
       transition: "background 0.15s ease",
     };
@@ -75,8 +75,8 @@ export function AnswerButtons({
       style={{
         display: "grid",
         gridTemplateColumns: "1fr",
-        gap: 12,
-        marginBottom: 20,
+        gap: 6,
+        marginBottom: 10,
       }}
     >
       {answers.map((answer) => (

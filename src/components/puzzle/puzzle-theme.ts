@@ -36,7 +36,8 @@ export const puzzleTheme = {
 
   sizes: {
     headerHeight: 80,
-    chartHeight: 520,
+    chartHeight: 300,
+    chartMaxWidth: 686,
     contentMaxWidth: 1200,
   },
 

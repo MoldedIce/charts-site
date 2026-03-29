@@ -133,8 +133,9 @@ export function PuzzleChart({
       style={{
         position: "relative",
         width: "100%",
+        maxWidth: isMobile ? undefined : puzzleTheme.sizes.chartMaxWidth,
         height: chartHeight,
-        marginBottom: 28,
+        marginBottom: 10,
       }}
       onMouseLeave={() => setTooltip(null)}
     >

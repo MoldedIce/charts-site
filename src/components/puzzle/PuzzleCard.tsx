@@ -41,34 +41,35 @@ export function PuzzleCard({ puzzle }: PuzzleCardProps) {
         boxSizing: "border-box",
       }}
     >
-      <PuzzleHeader
-        title={puzzle.title}
-        onReset={handleReset}
-      />
+      <div style={{ maxWidth: puzzleTheme.sizes.chartMaxWidth, margin: "0 auto" }}>
+        <PuzzleHeader
+          title={puzzle.title}
+          onReset={handleReset}
+        />
+        <PuzzleChart
+          puzzle={puzzle}
+          selectedAnswerId={selectedAnswerId}
+          hoveredAnswerId={hoveredAnswerId}
+          hasAnswered={hasAnswered}
+          isCorrect={isCorrect}
+        />
 
-      <PuzzleChart
-        puzzle={puzzle}
-        selectedAnswerId={selectedAnswerId}
-        hoveredAnswerId={hoveredAnswerId}
-        hasAnswered={hasAnswered}
-        isCorrect={isCorrect}
-      />
+        <AnswerButtons
+          answers={puzzle.answers}
+          selectedAnswerId={selectedAnswerId}
+          hoveredAnswerId={hoveredAnswerId}
+          correctAnswerId={puzzle.correctAnswerId}
+          hasAnswered={hasAnswered}
+          onAnswerClick={handleAnswerClick}
+          onAnswerHover={handleAnswerHover}
+        />
 
-      <AnswerButtons
-        answers={puzzle.answers}
-        selectedAnswerId={selectedAnswerId}
-        hoveredAnswerId={hoveredAnswerId}
-        correctAnswerId={puzzle.correctAnswerId}
-        hasAnswered={hasAnswered}
-        onAnswerClick={handleAnswerClick}
-        onAnswerHover={handleAnswerHover}
-      />
-
-      <ResultBanner
-        hasAnswered={hasAnswered}
-        isCorrect={isCorrect}
-        text={explanationText}
-      />
+        <ResultBanner
+          hasAnswered={hasAnswered}
+          isCorrect={isCorrect}
+          text={explanationText}
+        />
+      </div>
     </div>
   );
 }

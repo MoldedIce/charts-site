@@ -49,7 +49,7 @@ export default function App() {
 
       <main
         style={{
-          padding: "18px 16px 40px",
+          padding: "0 16px 40px",
           boxSizing: "border-box",
           fontFamily: "Inter, system-ui, -apple-system, sans-serif",
         }}
@@ -60,14 +60,14 @@ export default function App() {
             top: headerHeight,
             zIndex: 20,
             background: puzzleTheme.colors.background,
-            padding: "14px 0 16px",
-            marginBottom: 20,
+            padding: "6px 0 8px",
+            marginBottom: 8,
           }}
         >
           <div
             style={{
               width: "100%",
-              maxWidth: puzzleTheme.sizes.contentMaxWidth,
+              maxWidth: puzzleTheme.sizes.chartMaxWidth,
               margin: "0 auto",
               display: "flex",
               flexDirection: "column",

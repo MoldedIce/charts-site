@@ -1,3 +1,7 @@
+html {
+  scrollbar-gutter: stable;
+}
+
 html, body, #root {
   margin: 0;
   width: 100%;

@@ -41,30 +41,31 @@ export function ScenarioCard({ puzzle }: ScenarioCardProps) {
         boxSizing: "border-box",
       }}
     >
-      <PuzzleHeader title={puzzle.title} onReset={handleReset} />
+      <div style={{ maxWidth: puzzleTheme.sizes.chartMaxWidth, margin: "0 auto" }}>
+        <PuzzleHeader title={puzzle.title} onReset={handleReset} />
+        <ScenarioChart
+          puzzle={puzzle}
+          selectedId={selectedId}
+          hoveredId={hoveredId}
+          hasAnswered={hasAnswered}
+        />
 
-      <ScenarioChart
-        puzzle={puzzle}
-        selectedId={selectedId}
-        hoveredId={hoveredId}
-        hasAnswered={hasAnswered}
-      />
+        <AnswerButtons
+          answers={puzzle.scenarios.map((s) => ({ id: s.id, label: s.label }))}
+          selectedAnswerId={selectedId}
+          hoveredAnswerId={null}
+          correctAnswerId={puzzle.correctScenarioId}
+          hasAnswered={hasAnswered}
+          onAnswerClick={handleSelect}
+          onAnswerHover={handleHover}
+        />
 
-      <AnswerButtons
-        answers={puzzle.scenarios.map((s) => ({ id: s.id, label: s.label }))}
-        selectedAnswerId={selectedId}
-        hoveredAnswerId={null}
-        correctAnswerId={puzzle.correctScenarioId}
-        hasAnswered={hasAnswered}
-        onAnswerClick={handleSelect}
-        onAnswerHover={handleHover}
-      />
-
-      <ResultBanner
-        hasAnswered={hasAnswered}
-        isCorrect={isCorrect}
-        text={explanationText}
-      />
+        <ResultBanner
+          hasAnswered={hasAnswered}
+          isCorrect={isCorrect}
+          text={explanationText}
+        />
+      </div>
     </div>
   );
 }

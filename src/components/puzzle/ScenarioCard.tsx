@@ -48,7 +48,6 @@ export function ScenarioCard({ puzzle }: ScenarioCardProps) {
         selectedId={selectedId}
         hoveredId={hoveredId}
         hasAnswered={hasAnswered}
-        isCorrect={isCorrect}
       />
 
       <AnswerButtons

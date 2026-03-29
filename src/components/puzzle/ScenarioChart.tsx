@@ -17,7 +17,6 @@ type ScenarioChartProps = {
   selectedId: string | null;
   hoveredId: string | null;
   hasAnswered: boolean;
-  isCorrect: boolean;
 };
 
 export function ScenarioChart({
@@ -25,7 +24,6 @@ export function ScenarioChart({
   selectedId,
   hoveredId,
   hasAnswered,
-  isCorrect,
 }: ScenarioChartProps) {
   const { baseData, scenarios } = puzzle;
 
@@ -92,7 +90,7 @@ export function ScenarioChart({
             const isHovered = hoveredId === scenario.id;
             const isDimmed = hoveredId !== null && !isHovered;
 
-            let stroke = isHovered
+            let stroke: string = isHovered
               ? puzzleTheme.colors.lineCandidateHover
               : puzzleTheme.colors.lineCandidate;
             let strokeWidth = isHovered ? 2.5 : 2;
@@ -139,7 +137,7 @@ export function ScenarioChart({
             const isDimmed = hoveredId !== null && !isHovered;
             const endPoint = scenario.data[scenario.data.length - 1];
 
-            let fill = isHovered
+            let fill: string = isHovered
               ? puzzleTheme.colors.labelHover
               : puzzleTheme.colors.labelNeutral;
             let opacity = isDimmed ? 0.45 : 1;

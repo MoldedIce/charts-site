@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { error: puzzleError } = await supabase
       .from("puzzles")
-      .update({ slug, type, title, published, explanation_correct, explanation_incorrect })
+      .update({ slug, type, title, published, notes: req.body.notes ?? null, explanation_correct, explanation_incorrect })
       .eq("id", id);
 
     if (puzzleError) return res.status(500).json({ error: puzzleError.message });

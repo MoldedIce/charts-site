@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let query = supabase
       .from("puzzles")
       .select(`
-        id, slug, type, title, published, explanation_correct, explanation_incorrect,
+        id, slug, type, title, published, notes, created_at, updated_at, explanation_correct, explanation_incorrect,
         puzzle_base_points(step, value),
         puzzle_answers(id, label, value, is_correct),
         puzzle_scenarios(
@@ -44,7 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { data: puzzle, error: puzzleError } = await supabase
       .from("puzzles")
-      .insert({ slug, type, title, published, explanation_correct, explanation_incorrect })
+      .insert({ slug, type, title, published, notes: req.body.notes ?? null, explanation_correct, explanation_incorrect })
       .select()
       .single();
 

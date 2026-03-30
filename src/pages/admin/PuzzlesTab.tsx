@@ -21,6 +21,7 @@ type PuzzleForm = {
   type: "next_point" | "scenarios";
   title: string;
   published: boolean;
+  notes: string;
   explanation_correct: string;
   explanation_incorrect: string;
   base_points: PointRow[];
@@ -34,6 +35,9 @@ type ApiPuzzle = {
   type: "next_point" | "scenarios";
   title: string;
   published: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
   explanation_correct: string;
   explanation_incorrect: string;
   puzzle_base_points: { step: number; value: number }[];
@@ -46,6 +50,27 @@ type ApiPuzzle = {
   }[];
 };
 
+type SortField = "created_at" | "updated_at" | "slug" | "type" | "published";
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function suggestSlug(type: "next_point" | "scenarios", existingSlugs: string[]): string {
+  const prefix = type === "next_point" ? "puzzle" : "scenario";
+  const nums = existingSlugs
+    .filter((s) => s.startsWith(prefix + "-"))
+    .map((s) => parseInt(s.replace(prefix + "-", "")))
+    .filter((n) => !isNaN(n));
+  const max = nums.length > 0 ? Math.max(...nums) : 0;
+  return `${prefix}-${String(max + 1).padStart(3, "0")}`;
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleString("en-GB", {
+    day: "numeric", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
 // ─── Defaults ────────────────────────────────────────────────────────────────
 
 const emptyBase = (n = 7): PointRow[] => Array(n).fill(null).map(() => ({ value: "" }));
@@ -56,6 +81,7 @@ const defaultForm: PuzzleForm = {
   type: "next_point",
   title: "",
   published: true,
+  notes: "",
   explanation_correct: "",
   explanation_incorrect: "Not quite. You chose {selected}, but the correct answer is {correct}.",
   base_points: emptyBase(),
@@ -80,6 +106,7 @@ function apiToForm(p: ApiPuzzle): PuzzleForm {
     type: p.type,
     title: p.title,
     published: p.published,
+    notes: p.notes ?? "",
     explanation_correct: p.explanation_correct ?? "",
     explanation_incorrect: p.explanation_incorrect ?? "",
     base_points: sortedBase.map((bp) => ({ value: String(bp.value) })),
@@ -111,6 +138,7 @@ function formToBody(form: PuzzleForm) {
     type: form.type,
     title: form.title,
     published: form.published,
+    notes: form.notes || null,
     explanation_correct: form.explanation_correct,
     explanation_incorrect: form.explanation_incorrect,
     base_points,
@@ -178,9 +206,18 @@ export function PuzzlesTab() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | "new" | null>(null);
   const [form, setForm] = useState<PuzzleForm>(defaultForm);
+  const [slugError, setSlugError] = useState("");
   const [previewKey, setPreviewKey] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Filters
+  const [filterType, setFilterType] = useState<"all" | "next_point" | "scenarios">("all");
+  const [filterPublished, setFilterPublished] = useState<"all" | "true" | "false">("all");
+
+  // Sorting
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   async function fetchPuzzles() {
     setLoading(true);
@@ -191,15 +228,25 @@ export function PuzzlesTab() {
 
   useEffect(() => { fetchPuzzles(); }, []);
 
+  // Auto-update slug suggestion when type changes on a new puzzle
+  useEffect(() => {
+    if (editingId === "new") {
+      setForm((f) => ({ ...f, slug: suggestSlug(f.type, puzzles.map((p) => p.slug)) }));
+    }
+  }, [form.type, editingId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function openNew() {
-    setForm(defaultForm);
+    const suggested = suggestSlug("next_point", puzzles.map((p) => p.slug));
+    setForm({ ...defaultForm, slug: suggested });
     setEditingId("new");
+    setSlugError("");
     setShowPreview(false);
   }
 
   function openEdit(p: ApiPuzzle) {
     setForm(apiToForm(p));
     setEditingId(p.id);
+    setSlugError("");
     setShowPreview(false);
   }
 
@@ -208,7 +255,23 @@ export function PuzzlesTab() {
     setShowPreview(false);
   }
 
+  function toggleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+  }
+
   async function handleSave() {
+    // Validate slug uniqueness
+    const duplicate = puzzles.find((p) => p.slug === form.slug && p.id !== editingId);
+    if (duplicate) {
+      setSlugError(`Slug "${form.slug}" is already used by another puzzle.`);
+      return;
+    }
+    setSlugError("");
     setSaving(true);
     const body = formToBody(form);
     if (editingId === "new") {
@@ -238,17 +301,70 @@ export function PuzzlesTab() {
     fetchPuzzles();
   }
 
+  // Filter + sort
+  const displayed = [...puzzles]
+    .filter((p) => filterType === "all" || p.type === filterType)
+    .filter((p) => filterPublished === "all" || String(p.published) === filterPublished)
+    .sort((a, b) => {
+      let av: string | boolean = a[sortField];
+      let bv: string | boolean = b[sortField];
+      if (typeof av === "boolean") { av = String(av); bv = String(bv); }
+      const cmp = (av as string).localeCompare(bv as string);
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
   const preview = showPreview ? buildPreview(form) : null;
+
+  function SortBtn({ field, label }: { field: SortField; label: string }) {
+    const active = sortField === field;
+    return (
+      <button
+        onClick={() => toggleSort(field)}
+        style={{
+          ...smallBtnStyle,
+          color: active ? "#101828" : "#667085",
+          fontWeight: active ? 600 : 400,
+          fontSize: 12,
+        }}
+      >
+        {label} {active ? (sortDir === "asc" ? "↑" : "↓") : ""}
+      </button>
+    );
+  }
 
   return (
     <div>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div style={{ fontSize: 20, fontWeight: 600, color: "#101828" }}>Puzzles</div>
         {editingId === null && (
           <button onClick={openNew} style={submitBtnStyle}>+ New puzzle</button>
         )}
       </div>
+
+      {/* Filters + sort */}
+      {editingId === null && (
+        <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+          <select value={filterType} onChange={(e) => setFilterType(e.target.value as typeof filterType)} style={selectStyle}>
+            <option value="all">All types</option>
+            <option value="next_point">Next Point</option>
+            <option value="scenarios">Scenarios</option>
+          </select>
+          <select value={filterPublished} onChange={(e) => setFilterPublished(e.target.value as typeof filterPublished)} style={selectStyle}>
+            <option value="all">All statuses</option>
+            <option value="true">Published</option>
+            <option value="false">Unpublished</option>
+          </select>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "#667085" }}>
+            Sort:
+            <SortBtn field="created_at" label="Created" />
+            <SortBtn field="updated_at" label="Modified" />
+            <SortBtn field="slug" label="Name" />
+            <SortBtn field="type" label="Type" />
+            <SortBtn field="published" label="Status" />
+          </div>
+        </div>
+      )}
 
       {/* Form */}
       {editingId !== null && (
@@ -260,12 +376,15 @@ export function PuzzlesTab() {
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {/* Meta */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <input
-                placeholder="slug (e.g. puzzle-003)"
-                value={form.slug}
-                onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                style={{ ...inputStyle, flex: 1, minWidth: 160 }}
-              />
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <input
+                  placeholder="slug (e.g. puzzle-003)"
+                  value={form.slug}
+                  onChange={(e) => { setForm({ ...form, slug: e.target.value }); setSlugError(""); }}
+                  style={{ ...inputStyle, borderColor: slugError ? "#dc2626" : "#d0d5dd" }}
+                />
+                {slugError && <div style={{ fontSize: 12, color: "#dc2626", marginTop: 4 }}>{slugError}</div>}
+              </div>
               <select
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value as PuzzleForm["type"] })}
@@ -393,7 +512,9 @@ export function PuzzlesTab() {
                           }}
                           style={{ ...inputStyle, width: 80 }}
                         />
-                        <span style={{ fontSize: 12, color: "#667085" }}>continuation points (step {form.base_points.filter(p => p.value !== "").length + 1}+)</span>
+                        <span style={{ fontSize: 12, color: "#667085" }}>
+                          step {form.base_points.filter((p) => p.value !== "").length + 1}+
+                        </span>
                         {form.scenarios.length > 2 && (
                           <button onClick={() => setForm({ ...form, scenarios: form.scenarios.filter((_, j) => j !== si) })} style={{ ...smallBtnStyle, color: "#dc2626", marginLeft: "auto" }}>Remove</button>
                         )}
@@ -401,7 +522,9 @@ export function PuzzlesTab() {
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         {s.points.map((p, pi) => (
                           <div key={pi} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                            <span style={{ fontSize: 10, color: "#98a2b3" }}>{form.base_points.filter(bp => bp.value !== "").length + pi + 1}</span>
+                            <span style={{ fontSize: 10, color: "#98a2b3" }}>
+                              {form.base_points.filter((bp) => bp.value !== "").length + pi + 1}
+                            </span>
                             <input
                               type="number"
                               value={p.value}
@@ -458,7 +581,12 @@ export function PuzzlesTab() {
               />
             </div>
             <div>
-              <SectionLabel>Explanation — incorrect <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(use {"{selected}"} and {"{correct}"})</span></SectionLabel>
+              <SectionLabel>
+                Explanation — incorrect{" "}
+                <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>
+                  (use {"{selected}"} and {"{correct}"})
+                </span>
+              </SectionLabel>
               <textarea
                 value={form.explanation_incorrect}
                 onChange={(e) => setForm({ ...form, explanation_incorrect: e.target.value })}
@@ -467,15 +595,24 @@ export function PuzzlesTab() {
               />
             </div>
 
+            {/* Notes */}
+            <div>
+              <SectionLabel>Notes (private)</SectionLabel>
+              <textarea
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                rows={3}
+                style={{ ...inputStyle, resize: "vertical", marginTop: 6 }}
+                placeholder="Your private notes on this puzzle."
+              />
+            </div>
+
             {/* Actions */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingTop: 4 }}>
               <button onClick={handleSave} disabled={saving} style={{ ...submitBtnStyle, opacity: saving ? 0.6 : 1 }}>
                 {saving ? "Saving..." : "Save"}
               </button>
-              <button
-                onClick={() => { setPreviewKey((k) => k + 1); setShowPreview(true); }}
-                style={secondaryBtnStyle}
-              >
+              <button onClick={() => { setPreviewKey((k) => k + 1); setShowPreview(true); }} style={secondaryBtnStyle}>
                 Preview
               </button>
               <button onClick={cancelEdit} style={cancelBtnStyle}>Cancel</button>
@@ -501,16 +638,22 @@ export function PuzzlesTab() {
       {/* Puzzle list */}
       {loading ? (
         <div style={{ color: "#667085", fontSize: 14 }}>Loading...</div>
+      ) : displayed.length === 0 ? (
+        <div style={{ color: "#667085", fontSize: 14 }}>No puzzles match the selected filters.</div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {puzzles.map((p) => (
+          {displayed.map((p) => (
             <div key={p.id} style={{ background: "#fff", borderRadius: 14, padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: "#101828", marginBottom: 4 }}>{p.title || p.slug}</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
                   <Badge text={p.type === "next_point" ? "Next Point" : "Scenarios"} color="#667085" />
                   <Badge text={p.slug} color="#98a2b3" />
                   <Badge text={p.published ? "Published" : "Unpublished"} color={p.published ? "#16a34a" : "#b45309"} />
+                </div>
+                <div style={{ fontSize: 11, color: "#98a2b3" }}>
+                  Created {formatDate(p.created_at)}
+                  {p.updated_at !== p.created_at && <> · Modified {formatDate(p.updated_at)}</>}
                 </div>
               </div>
               <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>

@@ -11,7 +11,7 @@ import { PuzzleCard } from "./components/puzzle/PuzzleCard";
 import { ScenarioCard } from "./components/puzzle/ScenarioCard";
 import { puzzleTheme } from "./components/puzzle/puzzle-theme";
 import { useIsMobile } from "./hooks/useIsMobile";
-import { nextPointPuzzles, scenarioPuzzles } from "./data/puzzles";
+import { usePuzzles } from "./hooks/usePuzzles";
 
 export default function App() {
   const [activeMode, setActiveMode] = useState<PuzzleMode>("next-point");
@@ -20,6 +20,7 @@ export default function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const isMobile = useIsMobile();
   const headerHeight = isMobile ? 56 : puzzleTheme.sizes.headerHeight;
+  const { nextPointPuzzles, scenarioPuzzles, loading } = usePuzzles();
 
   useEffect(() => {
     function handleScroll() {
@@ -36,6 +37,8 @@ export default function App() {
 
   const nextPointPuzzle = nextPointPuzzles[nextPointIndex];
   const scenarioPuzzle = scenarioPuzzles[scenarioIndex];
+
+  const puzzlesReady = !loading && nextPointPuzzle && scenarioPuzzle;
 
   const puzzleApp = (
     <div
@@ -92,13 +95,14 @@ export default function App() {
           </div>
         </div>
 
-        {activeMode === "next-point" ? (
+        {!puzzlesReady ? (
+          <div style={{ color: puzzleTheme.colors.textSecondary, fontSize: 14, textAlign: "center", paddingTop: 40 }}>
+            Loading...
+          </div>
+        ) : activeMode === "next-point" ? (
           <PuzzleCard key={nextPointPuzzle.id} puzzle={nextPointPuzzle} />
         ) : (
-          <ScenarioCard
-            key={scenarioPuzzle.id}
-            puzzle={scenarioPuzzle}
-          />
+          <ScenarioCard key={scenarioPuzzle.id} puzzle={scenarioPuzzle} />
         )}
       </main>
     </div>

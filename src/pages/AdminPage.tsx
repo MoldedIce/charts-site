@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { IdeasTab } from "./admin/IdeasTab";
+import { PuzzlesTab } from "./admin/PuzzlesTab";
 
 const SESSION_KEY = "da_admin_pw";
 
@@ -28,6 +29,8 @@ export function AdminPage() {
       setPassword("");
     }
   }
+
+  const [adminTab, setAdminTab] = useState<"ideas" | "puzzles">("ideas");
 
   function handleLogout() {
     sessionStorage.removeItem(SESSION_KEY);
@@ -136,7 +139,29 @@ export function AdminPage() {
       </div>
 
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 16px" }}>
-        <IdeasTab />
+        <div style={{ display: "flex", gap: 24, marginBottom: 28, borderBottom: "1px solid #d0d5dd", paddingBottom: 0 }}>
+          {(["ideas", "puzzles"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setAdminTab(tab)}
+              style={{
+                background: "none",
+                border: "none",
+                borderBottom: adminTab === tab ? "2px solid #101828" : "2px solid transparent",
+                padding: "0 0 10px",
+                fontSize: 14,
+                fontWeight: adminTab === tab ? 600 : 400,
+                color: adminTab === tab ? "#101828" : "#667085",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textTransform: "capitalize",
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        {adminTab === "ideas" ? <IdeasTab /> : <PuzzlesTab />}
       </div>
     </div>
   );

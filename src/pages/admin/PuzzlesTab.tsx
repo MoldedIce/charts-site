@@ -250,6 +250,17 @@ export function PuzzlesTab() {
     setShowPreview(false);
   }
 
+  function openDuplicate(p: ApiPuzzle) {
+    const duplicated = apiToForm(p);
+    duplicated.slug = suggestSlug(p.type, puzzles.map((q) => q.slug));
+    duplicated.published = false;
+    duplicated.notes = "";
+    setForm(duplicated);
+    setEditingId("new");
+    setSlugError("");
+    setShowPreview(false);
+  }
+
   function cancelEdit() {
     setEditingId(null);
     setShowPreview(false);
@@ -648,6 +659,7 @@ export function PuzzlesTab() {
               </div>
               <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                 <button onClick={() => openEdit(p)} style={smallBtnStyle}>Edit</button>
+                <button onClick={() => openDuplicate(p)} style={smallBtnStyle}>Duplicate</button>
                 <button onClick={() => handleTogglePublished(p)} style={smallBtnStyle}>
                   {p.published ? "Unpublish" : "Publish"}
                 </button>

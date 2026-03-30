@@ -13,7 +13,7 @@ import {
 } from "./puzzle-chart-utils";
 import { puzzleTheme } from "./puzzle-theme";
 
-const MARGIN = { top: 20, right: 80, bottom: 32, left: 45 };
+const MARGIN = { top: 20, right: 35, bottom: 32, left: 45 };
 
 type TooltipData = {
   screenX: number;
@@ -238,47 +238,6 @@ export function PuzzleChart({
           strokeWidth={3}
         />
 
-        {/* Base dots */}
-        {baseData.map((pt) => (
-          <circle
-            key={`dot-${pt.step}`}
-            cx={xScale(pt.step)}
-            cy={yScale(pt.value)}
-            r={isMobile ? 3 : 5}
-            fill={puzzleTheme.colors.lineBase}
-          />
-        ))}
-
-        {/* Result: correct line */}
-        {hasAnswered && (
-          <g>
-            <path
-              d={lineGen([lastBasePoint, correctNextPoint]) ?? ""}
-              fill="none"
-              stroke={puzzleTheme.colors.correct}
-              strokeWidth={3}
-            />
-            <circle
-              cx={xScale(correctNextPoint.step)}
-              cy={yScale(correctNextPoint.value)}
-              r={isMobile ? 3 : 5}
-              fill={puzzleTheme.colors.correct}
-            />
-            <text
-              x={
-                xScale(correctNextPoint.step) + puzzleTheme.labels.endpointOffset
-              }
-              y={yScale(correctNextPoint.value)}
-              dominantBaseline="middle"
-              fontSize={puzzleTheme.labels.endpointFontSize}
-              fontWeight={700}
-              fill={puzzleTheme.colors.correct}
-            >
-              {correctNextPoint.value}
-            </text>
-          </g>
-        )}
-
         {/* Result: incorrect selection */}
         {hasAnswered && !isCorrect && selectedAnswerPoint && (
           <g>
@@ -310,6 +269,47 @@ export function PuzzleChart({
             </text>
           </g>
         )}
+
+        {/* Result: correct line */}
+        {hasAnswered && (
+          <g>
+            <path
+              d={lineGen([lastBasePoint, correctNextPoint]) ?? ""}
+              fill="none"
+              stroke={puzzleTheme.colors.correct}
+              strokeWidth={3}
+            />
+            <circle
+              cx={xScale(correctNextPoint.step)}
+              cy={yScale(correctNextPoint.value)}
+              r={isMobile ? 3 : 5}
+              fill={puzzleTheme.colors.correct}
+            />
+            <text
+              x={
+                xScale(correctNextPoint.step) + puzzleTheme.labels.endpointOffset
+              }
+              y={yScale(correctNextPoint.value)}
+              dominantBaseline="middle"
+              fontSize={puzzleTheme.labels.endpointFontSize}
+              fontWeight={700}
+              fill={puzzleTheme.colors.correct}
+            >
+              {correctNextPoint.value}
+            </text>
+          </g>
+        )}
+
+        {/* Base dots — rendered last so they appear on top of all lines */}
+        {baseData.map((pt) => (
+          <circle
+            key={`dot-${pt.step}`}
+            cx={xScale(pt.step)}
+            cy={yScale(pt.value)}
+            r={isMobile ? 3 : 5}
+            fill={puzzleTheme.colors.lineBase}
+          />
+        ))}
 
         {/* Hover guide */}
         {tooltip && (

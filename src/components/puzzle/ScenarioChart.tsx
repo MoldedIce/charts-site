@@ -7,7 +7,7 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import { getLastBasePoint } from "./puzzle-chart-utils";
 import { puzzleTheme } from "./puzzle-theme";
 
-const MARGIN = { top: 20, right: 80, bottom: 32, left: 45 };
+const MARGIN = { top: 20, right: 35, bottom: 32, left: 45 };
 
 type TooltipData = {
   screenX: number;
@@ -181,19 +181,13 @@ export function ScenarioChart({
           strokeWidth={3}
         />
 
-        {/* Base dots */}
-        {baseData.map((pt) => (
-          <circle
-            key={`dot-${pt.step}`}
-            cx={xScale(pt.step)}
-            cy={yScale(pt.value)}
-            r={isMobile ? 3 : 5}
-            fill={puzzleTheme.colors.lineBase}
-          />
-        ))}
-
-        {/* Scenario lines + labels */}
-        {scenarios.map((scenario) => {
+        {/* Scenario lines + labels — sorted so correct renders last (on top) */}
+        {[...scenarios].sort((a, b) => {
+          if (!hasAnswered) return 0;
+          if (a.id === puzzle.correctScenarioId) return 1;
+          if (b.id === puzzle.correctScenarioId) return -1;
+          return 0;
+        }).map((scenario) => {
           const isSelected = selectedId === scenario.id;
           const isCorrectScenario = scenario.id === puzzle.correctScenarioId;
           const isHovered = hoveredId === scenario.id;
@@ -258,6 +252,17 @@ export function ScenarioChart({
             </g>
           );
         })}
+
+        {/* Base dots — rendered last so they appear on top of all lines */}
+        {baseData.map((pt) => (
+          <circle
+            key={`dot-${pt.step}`}
+            cx={xScale(pt.step)}
+            cy={yScale(pt.value)}
+            r={isMobile ? 3 : 5}
+            fill={puzzleTheme.colors.lineBase}
+          />
+        ))}
 
         {/* Hover guide */}
         {tooltip && (

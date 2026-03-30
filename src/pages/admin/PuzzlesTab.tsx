@@ -144,7 +144,7 @@ function formToBody(form: PuzzleForm) {
     base_points,
     answers:
       form.type === "next_point"
-        ? form.answers.map((a) => ({ label: a.label, value: Number(a.value), is_correct: a.is_correct }))
+        ? form.answers.map((a) => ({ label: a.value, value: Number(a.value), is_correct: a.is_correct }))
         : [],
     scenarios:
       form.type === "scenarios"
@@ -453,16 +453,6 @@ export function PuzzlesTab() {
                           ...form,
                           answers: form.answers.map((ans, j) => ({ ...ans, is_correct: j === i })),
                         })}
-                      />
-                      <input
-                        placeholder="Label (e.g. 243)"
-                        value={a.label}
-                        onChange={(e) => {
-                          const next = [...form.answers];
-                          next[i] = { ...next[i], label: e.target.value };
-                          setForm({ ...form, answers: next });
-                        }}
-                        style={{ ...inputStyle, width: 120 }}
                       />
                       <input
                         type="number"

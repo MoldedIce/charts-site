@@ -60,6 +60,8 @@ export function IdeasTab() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterPriority, setFilterPriority] = useState("All");
   const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingCommentContent, setEditingCommentContent] = useState("");
 
   async function fetchIdeas() {
     setLoading(true);
@@ -104,6 +106,17 @@ export function IdeasTab() {
 
   async function handleDeleteComment(commentId: number) {
     await fetch(`/api/comments/${commentId}`, { method: "DELETE", headers: authHeader() });
+    fetchIdeas();
+  }
+
+  async function handleSaveEditComment(commentId: number) {
+    if (!editingCommentContent.trim()) return;
+    await fetch(`/api/comments/${commentId}`, {
+      method: "PUT",
+      headers: authHeader(),
+      body: JSON.stringify({ content: editingCommentContent.trim() }),
+    });
+    setEditingCommentId(null);
     fetchIdeas();
   }
 
@@ -297,9 +310,28 @@ export function IdeasTab() {
                         {expandedComments.has(idea.id) && (
                           <>
                             {idea.comments?.map((comment) => (
-                              <div key={comment.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "8px 0", borderTop: "1px solid #eaecf0" }}>
-                                <div style={{ fontSize: 14, color: "#101828", lineHeight: 1.5 }}>{comment.content}</div>
-                                <button onClick={() => handleDeleteComment(comment.id)} style={{ ...smallButtonStyle, color: "#dc2626", flexShrink: 0, marginLeft: 12 }}>×</button>
+                              <div key={comment.id} style={{ padding: "8px 0", borderTop: "1px solid #eaecf0" }}>
+                                {editingCommentId === comment.id ? (
+                                  <div style={{ display: "flex", gap: 8 }}>
+                                    <input
+                                      value={editingCommentContent}
+                                      onChange={(e) => setEditingCommentContent(e.target.value)}
+                                      onKeyDown={(e) => { if (e.key === "Enter") handleSaveEditComment(comment.id); if (e.key === "Escape") setEditingCommentId(null); }}
+                                      style={{ ...inputStyle, flex: 1 }}
+                                      autoFocus
+                                    />
+                                    <button onClick={() => handleSaveEditComment(comment.id)} style={submitButtonStyle}>Save</button>
+                                    <button onClick={() => setEditingCommentId(null)} style={cancelButtonStyle}>Cancel</button>
+                                  </div>
+                                ) : (
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                    <div style={{ fontSize: 14, color: "#101828", lineHeight: 1.5 }}>{comment.content}</div>
+                                    <div style={{ display: "flex", gap: 4, flexShrink: 0, marginLeft: 12 }}>
+                                      <button onClick={() => { setEditingCommentId(comment.id); setEditingCommentContent(comment.content); }} style={smallButtonStyle}>Edit</button>
+                                      <button onClick={() => handleDeleteComment(comment.id)} style={{ ...smallButtonStyle, color: "#dc2626" }}>×</button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             ))}
 

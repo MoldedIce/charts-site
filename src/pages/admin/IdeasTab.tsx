@@ -59,6 +59,7 @@ export function IdeasTab() {
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterPriority, setFilterPriority] = useState("All");
+  const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
 
   async function fetchIdeas() {
     setLoading(true);
@@ -281,27 +282,39 @@ export function IdeasTab() {
                           </div>
                         )}
 
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "#667085", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        <div
+                          onClick={() => setExpandedComments((prev) => {
+                            const next = new Set(prev);
+                            next.has(idea.id) ? next.delete(idea.id) : next.add(idea.id);
+                            return next;
+                          })}
+                          style={{ fontSize: 13, fontWeight: 600, color: "#667085", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5, cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", gap: 6 }}
+                        >
                           Comments {idea.comments?.length ? `(${idea.comments.length})` : ""}
+                          <span style={{ fontSize: 10 }}>{expandedComments.has(idea.id) ? "▲" : "▼"}</span>
                         </div>
 
-                        {idea.comments?.map((comment) => (
-                          <div key={comment.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "8px 0", borderTop: "1px solid #eaecf0" }}>
-                            <div style={{ fontSize: 14, color: "#101828", lineHeight: 1.5 }}>{comment.content}</div>
-                            <button onClick={() => handleDeleteComment(comment.id)} style={{ ...smallButtonStyle, color: "#dc2626", flexShrink: 0, marginLeft: 12 }}>×</button>
-                          </div>
-                        ))}
+                        {expandedComments.has(idea.id) && (
+                          <>
+                            {idea.comments?.map((comment) => (
+                              <div key={comment.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "8px 0", borderTop: "1px solid #eaecf0" }}>
+                                <div style={{ fontSize: 14, color: "#101828", lineHeight: 1.5 }}>{comment.content}</div>
+                                <button onClick={() => handleDeleteComment(comment.id)} style={{ ...smallButtonStyle, color: "#dc2626", flexShrink: 0, marginLeft: 12 }}>×</button>
+                              </div>
+                            ))}
 
-                        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                          <input
-                            placeholder="Add a comment..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === "Enter") handleAddComment(idea.id); }}
-                            style={{ ...inputStyle, flex: 1 }}
-                          />
-                          <button onClick={() => handleAddComment(idea.id)} style={submitButtonStyle}>Add</button>
-                        </div>
+                            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                              <input
+                                placeholder="Add a comment..."
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") handleAddComment(idea.id); }}
+                                style={{ ...inputStyle, flex: 1 }}
+                              />
+                              <button onClick={() => handleAddComment(idea.id)} style={submitButtonStyle}>Add</button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </>

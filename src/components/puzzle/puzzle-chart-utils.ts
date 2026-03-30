@@ -43,7 +43,7 @@ export function getCandidateLines(puzzle: PuzzleDefinition): CandidateLine[] {
 
   return puzzle.answers.map((answer) => ({
     id: answer.id,
-    label: answer.label,
+    label: String(answer.value),
     data: [lastBasePoint, { step: targetStep, value: answer.value }],
   }));
 }

@@ -20,7 +20,7 @@ export default function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const isMobile = useIsMobile();
   const headerHeight = isMobile ? 56 : puzzleTheme.sizes.headerHeight;
-  const { nextPointPuzzles, scenarioPuzzles, loading } = usePuzzles();
+  const { nextPointPuzzles, scenarioPuzzles, loading, error } = usePuzzles();
 
   useEffect(() => {
     function handleScroll() {
@@ -95,7 +95,11 @@ export default function App() {
           </div>
         </div>
 
-        {!puzzlesReady ? (
+        {error ? (
+          <div style={{ color: "#dc2626", fontSize: 14, textAlign: "center", paddingTop: 40 }}>
+            {error}
+          </div>
+        ) : !puzzlesReady ? (
           <div style={{ color: puzzleTheme.colors.textSecondary, fontSize: 14, textAlign: "center", paddingTop: 40 }}>
             Loading...
           </div>

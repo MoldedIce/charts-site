@@ -210,6 +210,7 @@ export function PuzzlesTab() {
   const [previewKey, setPreviewKey] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   // Filters
   const [filterType, setFilterType] = useState<"all" | "next_point" | "scenarios">("all");
@@ -240,6 +241,7 @@ export function PuzzlesTab() {
     setForm({ ...defaultForm, slug: suggested });
     setEditingId("new");
     setSlugError("");
+    setSaveError("");
     setShowPreview(false);
   }
 
@@ -247,6 +249,7 @@ export function PuzzlesTab() {
     setForm(apiToForm(p));
     setEditingId(p.id);
     setSlugError("");
+    setSaveError("");
     setShowPreview(false);
   }
 
@@ -258,6 +261,7 @@ export function PuzzlesTab() {
     setForm(duplicated);
     setEditingId("new");
     setSlugError("");
+    setSaveError("");
     setShowPreview(false);
   }
 
@@ -276,21 +280,54 @@ export function PuzzlesTab() {
   }
 
   async function handleSave() {
-    // Validate slug uniqueness
+    // Validate required fields
+    if (!form.slug.trim()) {
+      setSlugError("Slug is required.");
+      return;
+    }
     const duplicate = puzzles.find((p) => p.slug === form.slug && p.id !== editingId);
     if (duplicate) {
       setSlugError(`Slug "${form.slug}" is already used by another puzzle.`);
       return;
     }
     setSlugError("");
+
+    const validBase = form.base_points.filter((p) => p.value !== "" && !isNaN(Number(p.value)));
+    if (!form.title.trim()) { setSaveError("Title is required."); return; }
+    if (validBase.length < 2) { setSaveError("At least 2 valid base data points are required."); return; }
+
+    if (form.type === "next_point") {
+      const validAnswers = form.answers.filter((a) => a.value !== "" && !isNaN(Number(a.value)));
+      if (validAnswers.length < 2) { setSaveError("At least 2 answers with values are required."); return; }
+      if (!form.answers.some((a) => a.is_correct)) { setSaveError("Mark one answer as correct."); return; }
+    } else {
+      if (form.scenarios.length < 2) { setSaveError("At least 2 scenarios are required."); return; }
+      if (!form.scenarios.some((s) => s.is_correct)) { setSaveError("Mark one scenario as correct."); return; }
+      for (const s of form.scenarios) {
+        if (!s.label.trim()) { setSaveError("All scenarios must have a label."); return; }
+        const validPts = s.points.filter((p) => p.value !== "" && !isNaN(Number(p.value)));
+        if (validPts.length < 1) { setSaveError(`Scenario "${s.label}" needs at least 1 data point.`); return; }
+      }
+    }
+
+    setSaveError("");
     setSaving(true);
     const body = formToBody(form);
-    if (editingId === "new") {
-      await fetch("/api/puzzles", { method: "POST", headers: authHeader(), body: JSON.stringify(body) });
-    } else {
-      await fetch(`/api/puzzles/${editingId}`, { method: "PUT", headers: authHeader(), body: JSON.stringify(body) });
+    try {
+      const res = editingId === "new"
+        ? await fetch("/api/puzzles", { method: "POST", headers: authHeader(), body: JSON.stringify(body) })
+        : await fetch(`/api/puzzles/${editingId}`, { method: "PUT", headers: authHeader(), body: JSON.stringify(body) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSaveError(data.error ?? `Save failed (${res.status})`);
+        return;
+      }
+    } catch {
+      setSaveError("Network error. Please try again.");
+      return;
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
     setEditingId(null);
     setShowPreview(false);
     fetchPuzzles();
@@ -609,6 +646,11 @@ export function PuzzlesTab() {
             </div>
 
             {/* Actions */}
+            {saveError && (
+              <div style={{ fontSize: 13, color: "#dc2626", padding: "8px 12px", background: "#fef2f2", borderRadius: 8 }}>
+                {saveError}
+              </div>
+            )}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingTop: 4 }}>
               <button onClick={handleSave} disabled={saving} style={{ ...submitBtnStyle, opacity: saving ? 0.6 : 1 }}>
                 {saving ? "Saving..." : "Save"}

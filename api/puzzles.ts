@@ -33,6 +33,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { data, error } = await query;
     if (error) return res.status(500).json({ error: error.message });
+
+    if (!showAll) {
+      // Strip is_correct — compute correctAnswerId/correctScenarioId server-side
+      const sanitized = (data as any[]).map((p) => {
+        const correctAnswer = p.puzzle_answers?.find((a: any) => a.is_correct);
+        const correctScenario = p.puzzle_scenarios?.find((s: any) => s.is_correct);
+        return {
+          ...p,
+          correctAnswerId: correctAnswer ? String(correctAnswer.id) : null,
+          correctScenarioId: correctScenario ? String(correctScenario.id) : null,
+          puzzle_answers: p.puzzle_answers?.map(({ is_correct: _, ...a }: any) => a) ?? [],
+          puzzle_scenarios: p.puzzle_scenarios?.map(({ is_correct: _, ...s }: any) => s) ?? [],
+        };
+      });
+      return res.status(200).json(sanitized);
+    }
+
     return res.status(200).json(data);
   }
 

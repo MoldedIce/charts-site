@@ -1,13 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createClient } from "@supabase/supabase-js";
-
-function getSupabase() {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!);
-}
-
-function isAuthorized(req: VercelRequest): boolean {
-  return req.headers["authorization"] === `Bearer ${process.env.ADMIN_PASSWORD}`;
-}
+import { getSupabase, isAuthorized } from "./_lib";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isAuthorized(req)) return res.status(401).json({ error: "Unauthorized" });
@@ -15,24 +7,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const supabase = getSupabase();
 
   if (req.method === "GET") {
-    const { data: ideas, error } = await supabase
+    const { data, error } = await supabase
       .from("ideas")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    const { data: comments } = await supabase
-      .from("comments")
-      .select("*")
-      .order("created_at", { ascending: true });
+      .select("*, comments(*)")
+      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: true, referencedTable: "comments" });
 
     if (error) return res.status(500).json({ error: error.message });
 
-    const withComments = (ideas ?? []).map((idea) => ({
-      ...idea,
-      comments: comments?.filter((c) => c.idea_id === idea.id) ?? [],
-    }));
-
-    return res.status(200).json(withComments);
+    return res.status(200).json(data ?? []);
   }
 
   if (req.method === "POST") {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { PuzzleCard } from "../../components/puzzle/PuzzleCard";
 import { ScenarioCard } from "../../components/puzzle/ScenarioCard";
-import type { PuzzleDefinition, ScenarioPuzzleDefinition } from "../../data/puzzle-types";
+import { WhatHappenedCard } from "../../components/puzzle/WhatHappenedCard";
+import type { PuzzleDefinition, ScenarioPuzzleDefinition, WhatHappenedPuzzleDefinition } from "../../data/puzzle-types";
 import {
   type ApiPuzzle,
   type PuzzleForm,
@@ -36,7 +37,7 @@ export function PuzzlesTab() {
   const [saveError, setSaveError] = useState("");
 
   // Filters
-  const [filterType, setFilterType] = useState<"all" | "next_point" | "scenarios">("all");
+  const [filterType, setFilterType] = useState<"all" | "next_point" | "scenarios" | "what_happened">("all");
   const [filterPublished, setFilterPublished] = useState<"all" | "true" | "false">("all");
 
   // Sorting
@@ -123,7 +124,7 @@ export function PuzzlesTab() {
       const validAnswers = form.answers.filter((a) => a.value !== "" && !isNaN(Number(a.value)));
       if (validAnswers.length < 2) { setSaveError("At least 2 answers with values are required."); return; }
       if (!form.answers.some((a) => a.is_correct)) { setSaveError("Mark one answer as correct."); return; }
-    } else {
+    } else if (form.type === "scenarios") {
       if (form.scenarios.length < 2) { setSaveError("At least 2 scenarios are required."); return; }
       if (!form.scenarios.some((s) => s.is_correct)) { setSaveError("Mark one scenario as correct."); return; }
       for (const s of form.scenarios) {
@@ -131,6 +132,14 @@ export function PuzzlesTab() {
         const validPts = s.points.filter((p) => p.value !== "" && !isNaN(Number(p.value)));
         if (validPts.length < 1) { setSaveError(`Scenario "${s.label}" needs at least 1 data point.`); return; }
       }
+    } else if (form.type === "what_happened") {
+      const validForecast = form.forecast_points.filter((p) => p.value !== "" && !isNaN(Number(p.value)));
+      const validActual = form.actual_points.filter((p) => p.value !== "" && !isNaN(Number(p.value)));
+      if (validForecast.length < 1) { setSaveError("At least 1 forecast data point is required."); return; }
+      if (validActual.length < 1) { setSaveError("At least 1 actual data point is required."); return; }
+      const validAnswers = form.answers.filter((a) => a.label.trim() !== "");
+      if (validAnswers.length < 2) { setSaveError("At least 2 answer options are required."); return; }
+      if (!form.answers.some((a) => a.is_correct)) { setSaveError("Mark one answer as correct."); return; }
     }
 
     setSaveError("");
@@ -219,7 +228,8 @@ export function PuzzlesTab() {
           <select value={filterType} onChange={(e) => setFilterType(e.target.value as typeof filterType)} style={selectStyle}>
             <option value="all">All types</option>
             <option value="next_point">Next Point</option>
-            <option value="scenarios">Scenarios</option>
+            <option value="scenarios">Most Likely</option>
+            <option value="what_happened">What Happened</option>
           </select>
           <select value={filterPublished} onChange={(e) => setFilterPublished(e.target.value as typeof filterPublished)} style={selectStyle}>
             <option value="all">All statuses</option>
@@ -262,7 +272,8 @@ export function PuzzlesTab() {
                 style={selectStyle}
               >
                 <option value="next_point">Next Point</option>
-                <option value="scenarios">Scenarios</option>
+                <option value="scenarios">Most Likely</option>
+                <option value="what_happened">What Happened</option>
               </select>
               <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, color: "#475467", cursor: "pointer" }}>
                 <input
@@ -341,7 +352,7 @@ export function PuzzlesTab() {
                       )}
                     </div>
                   ))}
-                  <button onClick={() => setForm({ ...form, answers: [...form.answers, { label: "", value: "", is_correct: false }] })} style={{ ...smallBtnStyle, alignSelf: "flex-start" }}>+ Answer</button>
+                  <button onClick={() => setForm({ ...form, answers: [...form.answers, { label: "", value: "", is_correct: false, explanation: "" }] })} style={{ ...smallBtnStyle, alignSelf: "flex-start" }}>+ Answer</button>
                 </div>
               </div>
             )}
@@ -430,31 +441,152 @@ export function PuzzlesTab() {
               </div>
             )}
 
-            {/* Explanations */}
-            <div>
-              <SectionLabel>Explanation — correct</SectionLabel>
-              <textarea
-                value={form.explanation_correct}
-                onChange={(e) => setForm({ ...form, explanation_correct: e.target.value })}
-                rows={2}
-                style={{ ...inputStyle, resize: "vertical", marginTop: 6 }}
-                placeholder="Shown when the user answers correctly."
-              />
-            </div>
-            <div>
-              <SectionLabel>
-                Explanation — incorrect{" "}
-                <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>
-                  (use {"{selected}"} and {"{correct}"})
-                </span>
-              </SectionLabel>
-              <textarea
-                value={form.explanation_incorrect}
-                onChange={(e) => setForm({ ...form, explanation_incorrect: e.target.value })}
-                rows={2}
-                style={{ ...inputStyle, resize: "vertical", marginTop: 6 }}
-              />
-            </div>
+            {/* What Happened: forecast + actual points + answers */}
+            {form.type === "what_happened" && (
+              <>
+                <div>
+                  <SectionLabel>Forecast data points (steps after base)</SectionLabel>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                    {form.forecast_points.map((p, i) => (
+                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                        <span style={{ fontSize: 10, color: "#98a2b3" }}>
+                          {form.base_points.filter((bp) => bp.value !== "").length + i + 1}
+                        </span>
+                        <input
+                          type="number"
+                          value={p.value}
+                          onChange={(e) => {
+                            const next = [...form.forecast_points];
+                            next[i] = { value: e.target.value };
+                            setForm({ ...form, forecast_points: next });
+                          }}
+                          style={{ ...inputStyle, width: 60, padding: "6px 8px", textAlign: "center" }}
+                        />
+                      </div>
+                    ))}
+                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 4 }}>
+                      <button onClick={() => setForm({ ...form, forecast_points: [...form.forecast_points, { value: "" }] })} style={smallBtnStyle}>+</button>
+                      {form.forecast_points.length > 1 && (
+                        <button onClick={() => setForm({ ...form, forecast_points: form.forecast_points.slice(0, -1) })} style={smallBtnStyle}>−</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <SectionLabel>Actual data points (revealed after answering)</SectionLabel>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                    {form.actual_points.map((p, i) => (
+                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                        <span style={{ fontSize: 10, color: "#98a2b3" }}>
+                          {form.base_points.filter((bp) => bp.value !== "").length + i + 1}
+                        </span>
+                        <input
+                          type="number"
+                          value={p.value}
+                          onChange={(e) => {
+                            const next = [...form.actual_points];
+                            next[i] = { value: e.target.value };
+                            setForm({ ...form, actual_points: next });
+                          }}
+                          style={{ ...inputStyle, width: 60, padding: "6px 8px", textAlign: "center" }}
+                        />
+                      </div>
+                    ))}
+                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 4 }}>
+                      <button onClick={() => setForm({ ...form, actual_points: [...form.actual_points, { value: "" }] })} style={smallBtnStyle}>+</button>
+                      {form.actual_points.length > 1 && (
+                        <button onClick={() => setForm({ ...form, actual_points: form.actual_points.slice(0, -1) })} style={smallBtnStyle}>−</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <SectionLabel>Answer options (mark one as correct)</SectionLabel>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 6 }}>
+                    {form.answers.map((a, i) => (
+                      <div key={i} style={{ background: "#f9fafb", borderRadius: 10, padding: 12 }}>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                          <input
+                            type="radio"
+                            name="correct_what_happened"
+                            checked={a.is_correct}
+                            onChange={() => setForm({
+                              ...form,
+                              answers: form.answers.map((ans, j) => ({ ...ans, is_correct: j === i })),
+                            })}
+                          />
+                          <span style={{ fontSize: 13, fontWeight: 600, color: "#344054", minWidth: 20 }}>
+                            {String.fromCharCode(65 + i)}.
+                          </span>
+                          <input
+                            placeholder="Answer text"
+                            value={a.label}
+                            onChange={(e) => {
+                              const next = [...form.answers];
+                              next[i] = { ...next[i], label: e.target.value };
+                              setForm({ ...form, answers: next });
+                            }}
+                            style={{ ...inputStyle, flex: 1 }}
+                          />
+                          {form.answers.length > 2 && (
+                            <button onClick={() => setForm({ ...form, answers: form.answers.filter((_, j) => j !== i) })} style={{ ...smallBtnStyle, color: "#dc2626" }}>×</button>
+                          )}
+                        </div>
+                        <textarea
+                          placeholder="Explanation shown after selecting this answer"
+                          value={a.explanation}
+                          onChange={(e) => {
+                            const next = [...form.answers];
+                            next[i] = { ...next[i], explanation: e.target.value };
+                            setForm({ ...form, answers: next });
+                          }}
+                          rows={2}
+                          style={{ ...inputStyle, resize: "vertical" }}
+                        />
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setForm({ ...form, answers: [...form.answers, { label: "", value: "", is_correct: false, explanation: "" }] })}
+                      style={{ ...smallBtnStyle, alignSelf: "flex-start" }}
+                    >
+                      + Answer
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Explanations — not shown for what_happened (per-answer explanations used instead) */}
+            {form.type !== "what_happened" && (
+              <>
+                <div>
+                  <SectionLabel>Explanation — correct</SectionLabel>
+                  <textarea
+                    value={form.explanation_correct}
+                    onChange={(e) => setForm({ ...form, explanation_correct: e.target.value })}
+                    rows={2}
+                    style={{ ...inputStyle, resize: "vertical", marginTop: 6 }}
+                    placeholder="Shown when the user answers correctly."
+                  />
+                </div>
+                <div>
+                  <SectionLabel>
+                    Explanation — incorrect{" "}
+                    <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>
+                      (use {"{selected}"} and {"{correct}"})
+                    </span>
+                  </SectionLabel>
+                  <textarea
+                    value={form.explanation_incorrect}
+                    onChange={(e) => setForm({ ...form, explanation_incorrect: e.target.value })}
+                    rows={2}
+                    style={{ ...inputStyle, resize: "vertical", marginTop: 6 }}
+                  />
+                </div>
+              </>
+            )}
 
             {/* Notes */}
             <div>
@@ -492,10 +624,12 @@ export function PuzzlesTab() {
         <div style={{ marginBottom: 24 }}>
           <SectionLabel>Preview</SectionLabel>
           <div style={{ marginTop: 8, background: "#eef2f7", borderRadius: 16, padding: "16px 0", overflow: "hidden" }}>
-            {"answers" in preview ? (
-              <PuzzleCard key={previewKey} puzzle={preview as PuzzleDefinition} />
-            ) : (
+            {"forecastData" in preview ? (
+              <WhatHappenedCard key={previewKey} puzzle={preview as WhatHappenedPuzzleDefinition} />
+            ) : "scenarios" in preview ? (
               <ScenarioCard key={previewKey} puzzle={preview as ScenarioPuzzleDefinition} />
+            ) : (
+              <PuzzleCard key={previewKey} puzzle={preview as PuzzleDefinition} />
             )}
           </div>
         </div>
@@ -513,7 +647,7 @@ export function PuzzlesTab() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: "#101828", marginBottom: 4 }}>{p.title || p.slug}</div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
-                  <Badge text={p.type === "next_point" ? "Next Point" : "Scenarios"} color="#667085" />
+                  <Badge text={p.type === "next_point" ? "Next Point" : p.type === "scenarios" ? "Most Likely" : "What Happened"} color="#667085" />
                   <Badge text={p.slug} color="#98a2b3" />
                   <Badge text={p.published ? "Published" : "Unpublished"} color={p.published ? "#16a34a" : "#b45309"} />
                 </div>

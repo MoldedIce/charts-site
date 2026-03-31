@@ -22,6 +22,22 @@ export type PuzzleDefinition = {
   };
 };
 
+export type WhatHappenedAnswer = {
+  id: string;
+  label: string;
+  explanation: string;
+};
+
+export type WhatHappenedPuzzleDefinition = {
+  id: string;
+  title: string;
+  baseData: Point[];
+  forecastData: Point[];
+  actualData: Point[];
+  answers: WhatHappenedAnswer[];
+  correctAnswerId: string;
+};
+
 export type ScenarioOption = {
   id: string;
   label: string;

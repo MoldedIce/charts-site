@@ -19,11 +19,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select(`
         id, slug, type, title, published, notes, created_at, updated_at, explanation_correct, explanation_incorrect,
         puzzle_base_points(step, value),
-        puzzle_answers(id, label, value, is_correct),
+        puzzle_answers(id, label, value, is_correct, explanation),
         puzzle_scenarios(
           id, label, is_correct,
           puzzle_scenario_points(step, value)
-        )
+        ),
+        puzzle_forecast_points(step, value),
+        puzzle_actual_points(step, value)
       `)
       .order("id");
 
@@ -56,7 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST") {
     if (!isAuthorized(req)) return res.status(401).json({ error: "Unauthorized" });
 
-    const { slug, type, title, published, explanation_correct, explanation_incorrect, base_points, answers, scenarios } = req.body;
+    const { slug, type, title, published, explanation_correct, explanation_incorrect, base_points, answers, scenarios, forecast_points, actual_points } = req.body;
     const supabase = getSupabase();
 
     const { data: puzzle, error: puzzleError } = await supabase
@@ -89,6 +91,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           );
         }
       }
+    } else if (type === "what_happened") {
+      await supabase.from("puzzle_forecast_points").insert(
+        forecast_points.map((p: { step: number; value: number }) => ({ puzzle_id: puzzle.id, ...p }))
+      );
+      await supabase.from("puzzle_actual_points").insert(
+        actual_points.map((p: { step: number; value: number }) => ({ puzzle_id: puzzle.id, ...p }))
+      );
+      await supabase.from("puzzle_answers").insert(
+        answers.map((a: { label: string; is_correct: boolean; explanation: string }) => ({
+          puzzle_id: puzzle.id,
+          label: a.label,
+          value: 0,
+          is_correct: a.is_correct,
+          explanation: a.explanation,
+        }))
+      );
     }
 
     return res.status(201).json({ id: puzzle.id });

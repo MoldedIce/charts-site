@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === "PUT") {
-    const { slug, type, title, published, explanation_correct, explanation_incorrect, base_points, answers, scenarios } = req.body;
+    const { slug, type, title, published, explanation_correct, explanation_incorrect, base_points, answers, scenarios, forecast_points, actual_points } = req.body;
 
     const { error: puzzleError } = await supabase
       .from("puzzles")
@@ -56,6 +56,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           );
         }
       }
+    } else if (type === "what_happened") {
+      await supabase.from("puzzle_forecast_points").delete().eq("puzzle_id", id);
+      await supabase.from("puzzle_actual_points").delete().eq("puzzle_id", id);
+      await supabase.from("puzzle_answers").delete().eq("puzzle_id", id);
+
+      await supabase.from("puzzle_forecast_points").insert(
+        forecast_points.map((p: { step: number; value: number }) => ({ puzzle_id: Number(id), ...p }))
+      );
+      await supabase.from("puzzle_actual_points").insert(
+        actual_points.map((p: { step: number; value: number }) => ({ puzzle_id: Number(id), ...p }))
+      );
+      await supabase.from("puzzle_answers").insert(
+        answers.map((a: { label: string; is_correct: boolean; explanation: string }) => ({
+          puzzle_id: Number(id),
+          label: a.label,
+          value: 0,
+          is_correct: a.is_correct,
+          explanation: a.explanation,
+        }))
+      );
     }
 
     return res.status(200).json({ success: true });

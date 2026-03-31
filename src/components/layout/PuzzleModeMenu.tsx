@@ -1,6 +1,6 @@
 import { puzzleTheme } from "../puzzle/puzzle-theme";
 
-export type PuzzleMode = "next-point" | "scenario";
+export type PuzzleMode = "next-point" | "scenario" | "what-happened";
 
 type PuzzleModeMenuProps = {
   activeMode: PuzzleMode;
@@ -13,7 +13,8 @@ export function PuzzleModeMenu({
 }: PuzzleModeMenuProps) {
   const modes: Array<{ id: PuzzleMode; label: string }> = [
     { id: "next-point", label: "Next Point" },
-    { id: "scenario", label: "Scenarios" },
+    { id: "scenario", label: "Most Likely" },
+    { id: "what-happened", label: "What Happened" },
   ];
 
   return (

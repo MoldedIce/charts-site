@@ -9,6 +9,7 @@ import {
 import { PuzzlePicker } from "./components/layout/PuzzlePicker";
 import { PuzzleCard } from "./components/puzzle/PuzzleCard";
 import { ScenarioCard } from "./components/puzzle/ScenarioCard";
+import { WhatHappenedCard } from "./components/puzzle/WhatHappenedCard";
 import { puzzleTheme } from "./components/puzzle/puzzle-theme";
 import { useIsMobile } from "./hooks/useIsMobile";
 import { usePuzzles } from "./hooks/usePuzzles";
@@ -17,10 +18,11 @@ export default function App() {
   const [activeMode, setActiveMode] = useState<PuzzleMode>("next-point");
   const [nextPointIndex, setNextPointIndex] = useState(0);
   const [scenarioIndex, setScenarioIndex] = useState(0);
+  const [whatHappenedIndex, setWhatHappenedIndex] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const isMobile = useIsMobile();
   const headerHeight = isMobile ? 56 : puzzleTheme.sizes.headerHeight;
-  const { nextPointPuzzles, scenarioPuzzles, loading, error } = usePuzzles();
+  const { nextPointPuzzles, scenarioPuzzles, whatHappenedPuzzles, loading, error } = usePuzzles();
 
   useEffect(() => {
     function handleScroll() {
@@ -37,8 +39,13 @@ export default function App() {
 
   const nextPointPuzzle = nextPointPuzzles[nextPointIndex];
   const scenarioPuzzle = scenarioPuzzles[scenarioIndex];
+  const whatHappenedPuzzle = whatHappenedPuzzles[whatHappenedIndex];
 
-  const puzzlesReady = !loading && nextPointPuzzle && scenarioPuzzle;
+  const activePuzzleReady = !loading && (
+    (activeMode === "next-point" && nextPointPuzzle) ||
+    (activeMode === "scenario" && scenarioPuzzle) ||
+    (activeMode === "what-happened" && whatHappenedPuzzle)
+  );
 
   const puzzleApp = (
     <div
@@ -92,6 +99,13 @@ export default function App() {
                 onChange={setScenarioIndex}
               />
             )}
+            {activeMode === "what-happened" && (
+              <PuzzlePicker
+                count={whatHappenedPuzzles.length}
+                activeIndex={whatHappenedIndex}
+                onChange={setWhatHappenedIndex}
+              />
+            )}
           </div>
         </div>
 
@@ -99,14 +113,16 @@ export default function App() {
           <div style={{ color: "#dc2626", fontSize: 14, textAlign: "center", paddingTop: 40 }}>
             {error}
           </div>
-        ) : !puzzlesReady ? (
+        ) : !activePuzzleReady ? (
           <div style={{ color: puzzleTheme.colors.textSecondary, fontSize: 14, textAlign: "center", paddingTop: 40 }}>
-            Loading...
+            {loading ? "Loading..." : "No puzzles available for this mode yet."}
           </div>
         ) : activeMode === "next-point" ? (
-          <PuzzleCard key={nextPointPuzzle.id} puzzle={nextPointPuzzle} />
+          <PuzzleCard key={nextPointPuzzle!.id} puzzle={nextPointPuzzle!} />
+        ) : activeMode === "scenario" ? (
+          <ScenarioCard key={scenarioPuzzle!.id} puzzle={scenarioPuzzle!} />
         ) : (
-          <ScenarioCard key={scenarioPuzzle.id} puzzle={scenarioPuzzle} />
+          <WhatHappenedCard key={whatHappenedPuzzle!.id} puzzle={whatHappenedPuzzle!} />
         )}
       </main>
     </div>

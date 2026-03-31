@@ -15,6 +15,7 @@ export const puzzleTheme = {
 
     correct: "#16a34a",
     incorrect: "#dc2626",
+    forecast: "#f97316",
 
     border: "#d0d5dd",
     borderLight: "#eaecf0",

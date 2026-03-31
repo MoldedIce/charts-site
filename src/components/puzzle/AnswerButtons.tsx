@@ -1,7 +1,9 @@
 import { puzzleTheme } from "./puzzle-theme";
 
+type AnswerItem = { id: string; label: string };
+
 type AnswerButtonsProps = {
-  answers: { id: string; label: string }[];
+  answers: AnswerItem[];
   selectedAnswerId: string | null;
   hoveredAnswerId: string | null;
   correctAnswerId: string;

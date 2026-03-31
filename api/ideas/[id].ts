@@ -1,5 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabase, isAuthorized } from "../_lib";
+import { createClient } from "@supabase/supabase-js";
+
+function getSupabase() {
+  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!);
+}
+
+function isAuthorized(req: VercelRequest): boolean {
+  return req.headers["authorization"] === `Bearer ${process.env.ADMIN_PASSWORD}`;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isAuthorized(req)) return res.status(401).json({ error: "Unauthorized" });
